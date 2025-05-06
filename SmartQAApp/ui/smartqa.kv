@@ -1,0 +1,299 @@
+#: kivy 2.1.0
+#: import utils kivy.utils
+#: import ChineseTextInput ui.widgets.chinese_text_input.ChineseTextInput
+#: import Clock kivy.clock.Clock
+
+# 全局样式定义
+<Label>:
+    font_size: '16sp'
+    color: 0.1, 0.1, 0.1, 1
+    font_name: 'SimHei'
+    
+<Button>:
+    font_size: '16sp'
+    background_normal: ''
+    background_color: utils.get_color_from_hex('#2196F3')
+    border_radius: [5]
+    color: 1, 1, 1, 1
+    size_hint: None, None
+    size: 150, 50
+    font_name: 'SimHei'
+    
+<TextInput>:
+    multiline: False
+    padding: [10, 10, 10, 10]
+    font_size: '16sp'
+    background_color: 0.95, 0.95, 0.95, 1
+    foreground_color: 0.1, 0.1, 0.1, 1
+    cursor_color: 0.0, 0.7, 0.9, 1
+    font_name: 'SimHei'
+    input_type: 'text'
+    use_bubble: True
+    use_handles: True
+    allow_copy: True
+
+# 主屏幕样式
+<HomeScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+        padding: [10, 10, 10, 10]
+        canvas.before:
+            Color:
+                rgba: utils.get_color_from_hex('#F0F4F8')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        
+        # 顶部工具栏
+        BoxLayout:
+            size_hint_y: None
+            height: 60
+            spacing: 10
+            padding: [5, 5, 5, 5]
+            canvas.before:
+                Color:
+                    rgba: utils.get_color_from_hex('#2196F3')
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            
+            Label:
+                text: '智能问答助手'
+                color: 1, 1, 1, 1
+                font_size: '20sp'
+                size_hint_x: 0.7
+                halign: 'left'
+                text_size: self.size
+                valign: 'middle'
+                padding_x: 20
+            
+            Button:
+                text: '历史'
+                size_hint: None, None
+                size: 80, 40
+                background_color: utils.get_color_from_hex('#FFFFFF')
+                color: utils.get_color_from_hex('#2196F3')
+                on_release: app.screen_manager.current = 'history'
+            
+            Button:
+                text: '设置'
+                size_hint: None, None
+                size: 80, 40
+                background_color: utils.get_color_from_hex('#FFFFFF')
+                color: utils.get_color_from_hex('#2196F3')
+                on_release: app.screen_manager.current = 'settings'
+        
+        # 聊天内容区域
+        ScrollView:
+            id: chat_scroll
+            size_hint_y: 0.8
+            bar_width: 5
+            bar_color: utils.get_color_from_hex('#CCCCCC')
+            effect_cls: 'ScrollEffect'
+            
+            BoxLayout:
+                id: chat_container
+                orientation: 'vertical'
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: 15
+                padding: [10, 10, 10, 10]
+        
+        # 底部输入区域
+        BoxLayout:
+            size_hint_y: None
+            height: 60
+            spacing: 10
+            padding: [5, 5, 5, 5]
+            canvas.before:
+                Color:
+                    rgba: utils.get_color_from_hex('#FFFFFF')
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+                
+            ChineseTextInput:
+                id: input_text
+                hint_text: '请输入您的问题...'
+                size_hint_x: 0.7
+                input_type: 'text'
+                use_bubble: True
+                use_handles: True
+                allow_copy: True
+                font_name: 'SimHei'
+                keyboard_suggestions: True
+                keyboard_mode: 'auto'
+                write_tab: False
+                background_color: 0.95, 0.95, 0.95, 1
+                foreground_color: 0.1, 0.1, 0.1, 1
+                cursor_color: 0.2, 0.7, 0.9, 1
+                cursor_width: '2sp'
+                cursor_blink: True
+                halign: 'left'
+                padding: [10, 10, 10, 10]
+                font_size: '16sp'
+                focus: True
+            
+            Button:
+                id: mic_button
+                background_normal: ''
+                background_color: utils.get_color_from_hex('#F44336')
+                text: '语音'
+                size_hint: None, None
+                size: 60, 40
+                on_press: root.start_voice_input()
+                on_release: root.stop_voice_input()
+                
+            Button:
+                id: send_button
+                background_normal: ''
+                background_color: utils.get_color_from_hex('#4CAF50') if not self.disabled else utils.get_color_from_hex('#AAAAAA')
+                text: '发送'
+                size_hint: None, None
+                size: 60, 40
+                disabled: False
+                on_release: 
+                    root.send_message()
+                    self.disabled = True
+                    Clock.schedule_once(lambda dt: setattr(self, 'disabled', False), 0.5)
+
+# 历史记录屏幕样式
+<HistoryScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+        padding: [10, 10, 10, 10]
+        canvas.before:
+            Color:
+                rgba: utils.get_color_from_hex('#F0F4F8')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        
+        # 顶部工具栏
+        BoxLayout:
+            size_hint_y: None
+            height: 60
+            spacing: 10
+            padding: [5, 5, 5, 5]
+            canvas.before:
+                Color:
+                    rgba: utils.get_color_from_hex('#2196F3')
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            
+            Button:
+                text: '返回'
+                size_hint: None, None
+                size: 80, 40
+                background_color: utils.get_color_from_hex('#FFFFFF')
+                color: utils.get_color_from_hex('#2196F3')
+                on_release: app.screen_manager.current = 'home'
+            
+            Label:
+                text: '历史记录'
+                color: 1, 1, 1, 1
+                font_size: '20sp'
+        
+        # 历史记录列表
+        ScrollView:
+            id: history_scroll
+            bar_width: 5
+            bar_color: utils.get_color_from_hex('#CCCCCC')
+            effect_cls: 'ScrollEffect'
+            
+            BoxLayout:
+                id: history_container
+                orientation: 'vertical'
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: 15
+                padding: [10, 10, 10, 10]
+
+# 设置屏幕样式
+<SettingsScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+        padding: [10, 10, 10, 10]
+        canvas.before:
+            Color:
+                rgba: utils.get_color_from_hex('#F0F4F8')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        
+        # 顶部工具栏
+        BoxLayout:
+            size_hint_y: None
+            height: 60
+            spacing: 10
+            padding: [5, 5, 5, 5]
+            canvas.before:
+                Color:
+                    rgba: utils.get_color_from_hex('#2196F3')
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            
+            Button:
+                text: '返回'
+                size_hint: None, None
+                size: 80, 40
+                background_color: utils.get_color_from_hex('#FFFFFF')
+                color: utils.get_color_from_hex('#2196F3')
+                on_release: app.screen_manager.current = 'home'
+            
+            Label:
+                text: '设置'
+                color: 1, 1, 1, 1
+                font_size: '20sp'
+        
+        # 设置项列表
+        ScrollView:
+            bar_width: 5
+            bar_color: utils.get_color_from_hex('#CCCCCC')
+            effect_cls: 'ScrollEffect'
+            
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: 15
+                padding: [10, 10, 10, 10]
+                
+                # 语音输出设置
+                BoxLayout:
+                    size_hint_y: None
+                    height: 50
+                    orientation: 'horizontal'
+                    
+                    Label:
+                        text: '语音输出'
+                        size_hint_x: 0.7
+                    
+                    Switch:
+                        id: voice_output_switch
+                        active: True
+                        size_hint_x: 0.3
+                        on_active: root.toggle_voice_output(self.active)
+                
+                # 语音识别设置
+                BoxLayout:
+                    size_hint_y: None
+                    height: 50
+                    orientation: 'horizontal'
+                    
+                    Label:
+                        text: '语音识别'
+                        size_hint_x: 0.7
+                    
+                    Switch:
+                        id: voice_recognition_switch
+                        active: True
+                        size_hint_x: 0.3
+                        on_active: root.toggle_voice_recognition(self.active)
+                
+                # 其他设置项...

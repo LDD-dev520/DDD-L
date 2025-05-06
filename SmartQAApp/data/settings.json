@@ -1,0 +1,7 @@
+{
+    "voice_output": true,
+    "voice_recognition": true,
+    "auto_save_history": true,
+    "night_mode": false,
+    "font_size": "medium"
+}
