@@ -62,11 +62,21 @@
                 text: '智能问答助手'
                 color: 1, 1, 1, 1
                 font_size: '20sp'
-                size_hint_x: 0.7
+                size_hint_x: 0.5
                 halign: 'left'
                 text_size: self.size
                 valign: 'middle'
                 padding_x: 20
+            
+            # 语音控制按钮
+            Button:
+                id: voice_toggle
+                text: '语音:开'
+                size_hint: None, None
+                size: 80, 40
+                background_color: utils.get_color_from_hex('#4CAF50')
+                color: 1, 1, 1, 1
+                on_release: root.toggle_voice_output()
             
             Button:
                 text: '历史'
@@ -251,49 +261,157 @@
                 color: 1, 1, 1, 1
                 font_size: '20sp'
         
-        # 设置项列表
+        # 设置内容
         ScrollView:
             bar_width: 5
             bar_color: utils.get_color_from_hex('#CCCCCC')
-            effect_cls: 'ScrollEffect'
             
             BoxLayout:
                 orientation: 'vertical'
                 size_hint_y: None
                 height: self.minimum_height
-                spacing: 15
-                padding: [10, 10, 10, 10]
+                spacing: 20
+                padding: [20, 20, 20, 20]
                 
-                # 语音输出设置
+                # 语音设置部分
                 BoxLayout:
+                    orientation: 'vertical'
                     size_hint_y: None
-                    height: 50
-                    orientation: 'horizontal'
+                    height: 180
+                    padding: [10, 10, 10, 10]
+                    spacing: 15
+                    canvas.before:
+                        Color:
+                            rgba: utils.get_color_from_hex('#FFFFFF')
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                        
+                    Label:
+                        text: '语音设置'
+                        size_hint_y: None
+                        height: 40
+                        color: utils.get_color_from_hex('#2196F3')
+                        font_size: '18sp'
+                        halign: 'left'
+                        text_size: self.size
+                        valign: 'middle'
+                    
+                    # 语音输出开关
+                    BoxLayout:
+                        size_hint_y: None
+                        height: 50
+                        spacing: 10
+                        
+                        Label:
+                            text: '语音输出'
+                            size_hint_x: 0.7
+                            halign: 'left'
+                            text_size: self.size
+                            valign: 'middle'
+                        
+                        Button:
+                            id: voice_output_toggle
+                            text: '开启'
+                            size_hint_x: 0.3
+                            background_color: utils.get_color_from_hex('#4CAF50')
+                            color: 1, 1, 1, 1
+                            on_release: root.toggle_voice_output()
+                    
+                    # 自动播放语音开关
+                    BoxLayout:
+                        size_hint_y: None
+                        height: 50
+                        spacing: 10
+                        
+                        Label:
+                            text: '自动播放回答'
+                            size_hint_x: 0.7
+                            halign: 'left'
+                            text_size: self.size
+                            valign: 'middle'
+                        
+                        Button:
+                            id: auto_play_toggle
+                            text: '开启'
+                            size_hint_x: 0.3
+                            background_color: utils.get_color_from_hex('#4CAF50')
+                            color: 1, 1, 1, 1
+                            on_release: root.toggle_auto_play()
+                
+                # 麦克风设置部分
+                BoxLayout:
+                    orientation: 'vertical'
+                    size_hint_y: None
+                    height: 130
+                    padding: [10, 10, 10, 10]
+                    spacing: 15
+                    canvas.before:
+                        Color:
+                            rgba: utils.get_color_from_hex('#FFFFFF')
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
                     
                     Label:
-                        text: '语音输出'
-                        size_hint_x: 0.7
+                        text: '麦克风设置'
+                        size_hint_y: None
+                        height: 40
+                        color: utils.get_color_from_hex('#2196F3')
+                        font_size: '18sp'
+                        halign: 'left'
+                        text_size: self.size
+                        valign: 'middle'
                     
-                    Switch:
-                        id: voice_output_switch
-                        active: True
-                        size_hint_x: 0.3
-                        on_active: root.toggle_voice_output(self.active)
+                    # 语音识别开关
+                    BoxLayout:
+                        size_hint_y: None
+                        height: 50
+                        spacing: 10
+                        
+                        Label:
+                            text: '语音识别'
+                            size_hint_x: 0.7
+                            halign: 'left'
+                            text_size: self.size
+                            valign: 'middle'
+                        
+                        Button:
+                            id: voice_recognition_toggle
+                            text: '开启'
+                            size_hint_x: 0.3
+                            background_color: utils.get_color_from_hex('#4CAF50')
+                            color: 1, 1, 1, 1
+                            on_release: root.toggle_voice_recognition()
                 
-                # 语音识别设置
+                # 关于部分
                 BoxLayout:
+                    orientation: 'vertical'
                     size_hint_y: None
-                    height: 50
-                    orientation: 'horizontal'
+                    height: 180
+                    padding: [10, 10, 10, 10]
+                    spacing: 15
+                    canvas.before:
+                        Color:
+                            rgba: utils.get_color_from_hex('#FFFFFF')
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
                     
                     Label:
-                        text: '语音识别'
-                        size_hint_x: 0.7
+                        text: '关于'
+                        size_hint_y: None
+                        height: 40
+                        color: utils.get_color_from_hex('#2196F3')
+                        font_size: '18sp'
+                        halign: 'left'
+                        text_size: self.size
+                        valign: 'middle'
                     
-                    Switch:
-                        id: voice_recognition_switch
-                        active: True
-                        size_hint_x: 0.3
-                        on_active: root.toggle_voice_recognition(self.active)
-                
-                # 其他设置项...
+                    Label:
+                        text: '智能银行业务问答系统\n版本: 1.0.0\n\n© 2023 银行业务智能助手'
+                        size_hint_y: None
+                        height: 100
+                        halign: 'left'
+                        text_size: self.size
+                        valign: 'top'

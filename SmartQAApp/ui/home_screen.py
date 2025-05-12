@@ -73,16 +73,21 @@ class MessageBubble(BoxLayout):
         else:
             content_layout.orientation = 'horizontal'
             
-            # 消息内容标签
+            # 消息内容标签 - 修改以确保文本完整显示
             message_label = Label()
             message_label.text = message
             message_label.color = (0.1, 0.1, 0.1, 1)
-            message_label.size_hint = (0.8, 1)
+            message_label.size_hint = (0.8, None)  # 高度为None，允许自动调整
+            message_label.height = max(dp(80), len(message) * 0.2)  # 基于文本长度调整高度
             message_label.halign = 'left'
-            message_label.valign = 'middle'
-            message_label.text_size = (dp(200), None)
-            message_label.bind(size=message_label.setter('text_size'))
+            message_label.valign = 'top'
+            message_label.text_size = (dp(250), None)  # 宽度固定，高度自适应
+            message_label.bind(texture_size=self._update_label_height)
             message_label.padding = [dp(10), dp(10)]
+            
+            # 保存对标签的引用以便播放语音
+            self.message_label = message_label
+            self.message_text = message
             
             # 添加到布局中
             content_layout.add_widget(message_label)
@@ -94,12 +99,13 @@ class MessageBubble(BoxLayout):
             voice_button.size = (dp(40), dp(40))
             voice_button.background_color = (0.3, 0.7, 0.9, 1)
             voice_button.bind(on_release=lambda x: self.play_voice(message))
+            self.voice_button = voice_button
             
             content_layout.add_widget(voice_button)
             
             # 空白占位
             spacer = BoxLayout()
-            spacer.size_hint_x = 0.1
+            spacer.size_hint_x = 0.05
             content_layout.add_widget(spacer)
         
         # 添加时间戳标签
@@ -115,12 +121,70 @@ class MessageBubble(BoxLayout):
         # 添加到主布局
         self.add_widget(content_layout)
         self.add_widget(time_label)
+        
+        # 调整整体高度以适应内容
+        Clock.schedule_once(lambda dt: self._adjust_height(), 0.1)
+    
+    def _update_label_height(self, instance, size):
+        """根据文本内容更新标签高度"""
+        # 调整标签高度以适应内容
+        instance.height = max(dp(80), size[1] + dp(20))
+        # 重新调整整体布局
+        Clock.schedule_once(lambda dt: self._adjust_height(), 0)
+    
+    def _adjust_height(self):
+        """调整气泡整体高度"""
+        if hasattr(self, 'message_label'):
+            # 获取消息标签的实际高度
+            label_height = self.message_label.texture_size[1] + dp(20)
+            # 调整气泡高度
+            new_height = max(dp(100), label_height + dp(40))
+            self.height = new_height
+            # 调整内容布局高度
+            if len(self.children) > 0 and isinstance(self.children[0], BoxLayout):
+                self.children[0].height = new_height - dp(30)
     
     def play_voice(self, text):
         """播放语音"""
-        # 实际使用时，会调用语音合成器
-        print(f"播放语音: {text}")
-
+        try:
+            if not hasattr(self, 'app'):
+                from kivy.app import App
+                self.app = App.get_running_app()
+            
+            if hasattr(self.app, 'speech_handler'):
+                # 如果当前是否播放此消息
+                if self.app.speech_handler.is_speaking and self.voice_button.text == "⏹️":
+                    # 如果正在播放，则停止
+                    self.app.speech_handler.stop_speaking()
+                    self.voice_button.text = "🔊"
+                    self.voice_button.background_color = (0.3, 0.7, 0.9, 1)
+                else:
+                    # 停止其他可能正在播放的语音
+                    self.app.speech_handler.stop_speaking()
+                    
+                    # 直接调用语音处理器播放新的语音
+                    self.app.speech_handler.speak(text)
+                    
+                    # 更新播放按钮状态
+                    self.voice_button.text = "⏹️"
+                    self.voice_button.background_color = (0.9, 0.3, 0.3, 1)
+                    
+                    # 等待播放完成后恢复按钮状态
+                    Clock.schedule_interval(self._check_sound_status, 0.5)
+        except Exception as e:
+            Logger.error(f"播放语音失败: {e}")
+            
+    def _check_sound_status(self, dt):
+        """检查语音播放状态"""
+        try:
+            if hasattr(self.app, 'speech_handler'):
+                if not self.app.speech_handler.is_speaking:
+                    self.voice_button.text = "🔊"
+                    self.voice_button.background_color = (0.3, 0.7, 0.9, 1)
+                    return False  # 停止定时器
+            return True  # 继续检查
+        except:
+            return False  # 出错时停止定时器
 
 class HomeScreen(Screen):
     """主屏幕类"""
@@ -279,6 +343,10 @@ class HomeScreen(Screen):
             if not text:
                 return
             
+            # 停止当前正在播放的语音（新增）
+            if self.speech_handler:
+                self.speech_handler.stop_speaking()
+            
             # 记录发送的文本
             Logger.info(f"发送消息: {text}")
             
@@ -307,27 +375,72 @@ class HomeScreen(Screen):
     
     def process_user_message(self, text):
         """处理用户消息"""
-        # 实际应用中，这里会调用QA处理器进行处理
-        # 模拟处理延迟
-        Clock.schedule_once(lambda dt: self.show_thinking_indicator(), 0.1)
+        # 确保QA处理器已初始化
+        if not self.qa_processor:
+            Logger.error("QA处理器未初始化")
+            self.show_response("系统尚未准备好，请稍后再试...")
+            return
         
-        # 使用线程避免阻塞UI
-        Thread(target=self._process_in_background, args=(text,)).start()
+        # 停止之前的语音播放
+        if self.speech_handler:
+            self.speech_handler.stop_speaking()
+        
+        # 记录到历史
+        self.history.append(UserMessage(text))
+        
+        # 显示思考中指示器
+        self.show_thinking_indicator()
+        
+        # 启动后台线程处理
+        thread = Thread(target=self._process_in_background, args=(text,))
+        thread.daemon = True
+        thread.start()
     
     def _process_in_background(self, text):
-        """后台处理消息"""
-        # 模拟处理延迟
-        time.sleep(1.5)
-        
-        # 生成回复（实际中使用QA处理器）
-        if self.qa_processor:
+        """后台处理用户消息
+        专门增强对银行业务问题的处理
+        """
+        try:
+            # 使用QA处理器处理查询
+            Logger.info(f"处理用户查询: {text}")
+            
+            # 检查是否是银行业务相关问题
+            is_banking_related = self._is_banking_query(text)
+            
+            # 使用增强的处理器处理查询
             response = self.qa_processor.process_query(text)
-        else:
-            # 临时模拟回复
-            response = f"您的问题是：{text}\n这是一个模拟回复，实际应用中会根据问题内容生成智能回答。"
+            
+            # 为银行业务问题添加专业提示
+            if is_banking_related and "很抱歉" not in response and "无法" not in response:
+                # 添加银行业务免责声明
+                disclaimer = "\n\n(注：以上信息仅供参考，具体业务请以银行官方政策为准。)"
+                response += disclaimer
+            
+            # 在主线程中显示回复
+            Clock.schedule_once(lambda dt: self.show_response(response), 0)
+        except Exception as e:
+            # 处理异常
+            Logger.error(f"处理消息时出错: {str(e)}")
+            error_msg = "抱歉，处理您的问题时遇到了错误，请稍后再试。"
+            Clock.schedule_once(lambda dt: self.show_response(error_msg), 0)
+    
+    def _is_banking_query(self, text):
+        """检查是否是银行业务相关查询"""
+        # 银行业务关键词
+        banking_keywords = [
+            "银行", "账户", "卡", "存款", "取款", "转账", "汇款", "贷款", 
+            "信用卡", "储蓄", "理财", "利率", "利息", "手续费", "ATM", 
+            "开户", "销户", "余额", "密码", "网银", "手机银行", "支付", 
+            "房贷", "车贷", "消费贷", "按揭", "抵押", "信用", "征信",
+            "基金", "保险", "外汇", "汇率", "定期", "活期", "大额存单"
+        ]
         
-        # 在主线程中更新UI
-        Clock.schedule_once(lambda dt: self.show_response(response), 0)
+        # 检查文本中是否包含银行业务关键词
+        for keyword in banking_keywords:
+            if keyword in text:
+                return True
+        
+        return False
     
     def show_thinking_indicator(self):
         """显示思考中指示器"""
@@ -358,16 +471,22 @@ class HomeScreen(Screen):
             self.ids.chat_container.height -= self.thinking_indicator.height
             delattr(self, 'thinking_indicator')
         
+        # 确保回复文本不为空
+        if not response or response.strip() == "":
+            response = "抱歉，未能生成有效回复。请重新提问。"
+        
         # 添加AI回复到聊天区域
         self.add_message_to_chat(response, is_user=False)
         
         # 保存到历史记录
         self.history.append({"text": response, "is_user": False, "timestamp": datetime.now()})
         
-        # 如果启用了语音输出，播放语音
-        # TODO: 根据设置判断是否播放语音
-        if self.speech_handler:
-            self.speech_handler.speak(response)
+        # 如果启用了语音输出且自动播放设置开启，延迟1秒后播放语音
+        if self.speech_handler and hasattr(self.speech_handler, 'voice_output_enabled'):
+            if self.speech_handler.voice_output_enabled and hasattr(self.speech_handler, 'auto_play'):
+                if self.speech_handler.auto_play:
+                    Logger.info("延迟1秒后自动播放语音回复")
+                    self.speech_handler.speak(response, delay=1.0)  # 延迟1秒播放
     
     def add_message_to_chat(self, text, is_user=True):
         """添加消息到聊天区域"""
@@ -416,10 +535,17 @@ class HomeScreen(Screen):
             # 设置到输入框
             self.ids.input_text.text = recognized_text
             # 自动发送消息
+            Logger.info(f"语音识别结果: {recognized_text}")
             self.send_message()
         else:
             # 显示语音识别失败提示
             self.ids.input_text.hint_text = "未能识别语音，请重试..."
+            Logger.warning("语音识别失败或无结果")
+            
+            # 尝试检查麦克风状态
+            if hasattr(self.speech_handler, 'microphone') and not self.speech_handler.microphone:
+                Logger.error("麦克风未初始化或不可用")
+                self.ids.input_text.hint_text = "麦克风不可用，请检查设备..."
     
     def update_send_button_state(self, *args):
         """根据输入状态更新发送按钮状态
@@ -443,3 +569,27 @@ class HomeScreen(Screen):
         # 确保输入框获得焦点
         if self.ids.input_text.focus == False and in_composition:
             self.ids.input_text.focus = True 
+    
+    # 新增：控制语音播放的功能
+    def toggle_voice_output(self):
+        """切换语音输出状态"""
+        if not self.speech_handler:
+            return
+            
+        current_state = self.speech_handler.voice_output_enabled
+        self.speech_handler.set_voice_output_enabled(not current_state)
+        
+        # 更新界面状态（如果有相关控件）
+        if hasattr(self.ids, 'voice_toggle'):
+            self.ids.voice_toggle.text = "语音:开" if self.speech_handler.voice_output_enabled else "语音:关"
+    
+    def toggle_auto_play(self):
+        """切换自动播放语音状态"""
+        if not self.speech_handler or not hasattr(self.speech_handler, 'auto_play'):
+            return
+            
+        self.speech_handler.set_auto_play(not self.speech_handler.auto_play)
+        
+        # 更新界面状态（如果有相关控件）
+        if hasattr(self.ids, 'auto_play_toggle'):
+            self.ids.auto_play_toggle.text = "自动播放:开" if self.speech_handler.auto_play else "自动播放:关" 

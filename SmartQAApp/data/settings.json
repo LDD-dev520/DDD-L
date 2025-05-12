@@ -1,6 +1,7 @@
 {
-    "voice_output": true,
+    "voice_output": false,
     "voice_recognition": true,
+    "auto_play": false,
     "auto_save_history": true,
     "night_mode": false,
     "font_size": "medium"

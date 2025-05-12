@@ -9,6 +9,20 @@
 import os
 import sys
 import time
+import json
+
+# 加载环境变量
+try:
+    from dotenv import load_dotenv
+    # 尝试加载.env文件
+    env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
+    if os.path.exists(env_path):
+        load_dotenv(env_path)
+        print(f"已加载环境变量配置：{env_path}")
+except ImportError:
+    print("警告：未安装python-dotenv，无法加载.env配置文件")
+except Exception as e:
+    print(f"加载环境变量失败：{e}")
 
 # ======== 关键环境变量 ========
 # 专门针对Microsoft拼音输入法优化
