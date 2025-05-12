@@ -51,7 +51,7 @@ android.archs = arm64-v8a, armeabi-v7a
 # 图标和启动图
 android.presplash_color = #FFFFFF
 android.icon.filename = %(source.dir)s/assets/icon.png
-android.presplash.filename = %(source.dir)s/assets/splash.png
+android.presplash.filename = %(source.dir)s/assets/splash.jpg
 
 # Gradle相关配置
 android.gradle_dependencies = 
