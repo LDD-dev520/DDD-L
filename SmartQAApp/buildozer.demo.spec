@@ -47,7 +47,7 @@ android.archs = arm64-v8a, armeabi-v7a
 
 # 图标和启动图
 android.presplash_color = #FFFFFF
-android.icon.filename = %(source.dir)s/assets/icon.jpg
+android.icon.filename = %(source.dir)s/assets/icon.png
 android.presplash.filename = %(source.dir)s/assets/splash.jpg
 
 # 构建选项

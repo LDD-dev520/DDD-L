@@ -15,8 +15,8 @@ source.dir = .
 # 包含的源文件
 source.include_exts = py,png,jpg,kv,atlas,json,md,wav,mp3,ttf,txt
 
-# 包含的数据目录
-source.include_patterns = resources/*,data/*,assets/*,fonts/*
+# 包含的数据目录和源文件
+source.include_patterns = resources/*,data/*,assets/*,fonts/*,*.py
 
 # 包含的包
 requirements = python3,kivy==2.3.1,pyttsx3,gtts,chardet,speech_recognition,baidu-aip,python-Levenshtein,scikit-learn,joblib,fuzzywuzzy,comtypes,requests,numpy
@@ -40,9 +40,6 @@ android.features = android.hardware.microphone
 # 所有者信息
 author = SmartQA Team
 author_email = your.email@example.com
-
-# 指定主文件
-source.include_patterns = *.py
 
 # 指定了Android P8相关的配置
 android.accept_sdk_license = True
