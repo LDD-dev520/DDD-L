@@ -77,4 +77,14 @@ android.manifest.receivers = ["com.smartqa.receivers.BootReceiver:android.intent
 android.backup_rules = %(source.dir)s/backup_rules.xml
 
 # 允许混合Web内容
-android.allow_mixed_content = True 
+android.allow_mixed_content = True
+
+# 禁用自动下载，使用本地文件
+android.accept_sdk_license = True
+android.skip_update = True
+
+# 使用本地 Python 而不是下载
+use_system_python = True
+
+# 跳过某些步骤
+android.skip_build = False 
