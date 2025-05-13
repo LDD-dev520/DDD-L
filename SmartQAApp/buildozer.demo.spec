@@ -19,7 +19,7 @@ source.include_exts = py,png,jpg,kv,atlas
 source.include_patterns = assets/*
 
 # 包含的包
-requirements = python3,kivy
+requirements = python3==3.10,kivy==2.1.0
 
 # Android特定配置
 android.permissions = INTERNET,RECORD_AUDIO,WRITE_EXTERNAL_STORAGE

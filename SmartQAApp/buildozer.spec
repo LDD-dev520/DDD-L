@@ -19,7 +19,7 @@ source.include_exts = py,png,jpg,kv,atlas,json,md,wav,mp3,ttf,txt
 source.include_patterns = resources/*,data/*,assets/*,fonts/*,*.py
 
 # 包含的包
-requirements = python3,kivy==2.3.1,pyttsx3,gtts,chardet,speech_recognition,baidu-aip,python-Levenshtein,scikit-learn,joblib,fuzzywuzzy,comtypes,requests,numpy
+requirements = python3==3.10,kivy==2.1.0,pyttsx3,gtts,chardet,speech_recognition,baidu-aip,python-Levenshtein,scikit-learn,joblib,fuzzywuzzy,comtypes,requests,numpy
 
 # Android特定配置
 android.permissions = INTERNET,RECORD_AUDIO,WRITE_EXTERNAL_STORAGE
