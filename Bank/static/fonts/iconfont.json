@@ -1,0 +1,114 @@
+{
+  "id": "4252062",
+  "name": "银行助手",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "智能银行助手图标库",
+  "glyphs": [
+    {
+      "icon_id": "7542721",
+      "name": "历史记录",
+      "font_class": "history",
+      "unicode": "e678",
+      "unicode_decimal": 59000
+    },
+    {
+      "icon_id": "7542722",
+      "name": "返回",
+      "font_class": "back",
+      "unicode": "e679",
+      "unicode_decimal": 59001
+    },
+    {
+      "icon_id": "7542723",
+      "name": "麦克风",
+      "font_class": "mic",
+      "unicode": "e67a",
+      "unicode_decimal": 59002
+    },
+    {
+      "icon_id": "7542724",
+      "name": "发送",
+      "font_class": "send",
+      "unicode": "e677",
+      "unicode_decimal": 59003
+    },
+    {
+      "icon_id": "7542725",
+      "name": "清空",
+      "font_class": "clear",
+      "unicode": "e67b",
+      "unicode_decimal": 59004
+    },
+    {
+      "icon_id": "7542726",
+      "name": "键盘",
+      "font_class": "keyboard",
+      "unicode": "e67c",
+      "unicode_decimal": 59005
+    },
+    {
+      "icon_id": "7542727",
+      "name": "提问",
+      "font_class": "ask",
+      "unicode": "e67d",
+      "unicode_decimal": 59006
+    },
+    {
+      "icon_id": "7542728",
+      "name": "语音播报",
+      "font_class": "voice",
+      "unicode": "e67e",
+      "unicode_decimal": 59007
+    },
+    {
+      "icon_id": "7542729",
+      "name": "复制",
+      "font_class": "copy",
+      "unicode": "e67f",
+      "unicode_decimal": 59008
+    },
+    {
+      "icon_id": "7542730",
+      "name": "分享",
+      "font_class": "share",
+      "unicode": "e680",
+      "unicode_decimal": 59009
+    },
+    {
+      "icon_id": "7542731",
+      "name": "用户",
+      "font_class": "user",
+      "unicode": "e681",
+      "unicode_decimal": 59010
+    },
+    {
+      "icon_id": "7542732",
+      "name": "AI助手",
+      "font_class": "ai",
+      "unicode": "e682",
+      "unicode_decimal": 59011
+    },
+    {
+      "icon_id": "7542733",
+      "name": "收藏",
+      "font_class": "star",
+      "unicode": "e683",
+      "unicode_decimal": 59012
+    },
+    {
+      "icon_id": "7542734",
+      "name": "删除",
+      "font_class": "delete",
+      "unicode": "e684",
+      "unicode_decimal": 59013
+    },
+    {
+      "icon_id": "7542735",
+      "name": "右箭头",
+      "font_class": "right",
+      "unicode": "e670",
+      "unicode_decimal": 59014
+    }
+  ]
+} 

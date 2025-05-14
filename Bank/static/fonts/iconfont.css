@@ -1,0 +1,72 @@
+@font-face {
+  font-family: "iconfont"; /* Project id 4252062 */
+  src: url('iconfont.ttf') format('truetype');
+}
+
+.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-history:before {
+  content: "\e678";
+}
+
+.icon-back:before {
+  content: "\e679";
+}
+
+.icon-mic:before {
+  content: "\e67a";
+}
+
+.icon-send:before {
+  content: "\e677";
+}
+
+.icon-clear:before {
+  content: "\e67b";
+}
+
+.icon-keyboard:before {
+  content: "\e67c";
+}
+
+.icon-ask:before {
+  content: "\e67d";
+}
+
+.icon-voice:before {
+  content: "\e67e";
+}
+
+.icon-copy:before {
+  content: "\e67f";
+}
+
+.icon-share:before {
+  content: "\e680";
+}
+
+.icon-user:before {
+  content: "\e681";
+}
+
+.icon-ai:before {
+  content: "\e682";
+}
+
+.icon-star:before {
+  content: "\e683";
+}
+
+.icon-delete:before {
+  content: "\e684";
+}
+
+.icon-right:before {
+  content: "\e670";
+} 
