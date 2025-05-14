@@ -2,11 +2,11 @@
 	<view class="container">
 		<view class="header wave-bg">
 			<view class="back-btn" @click="goBack">
-				<text class="iconfont icon-back"></text>
+				<span class="iconfont icon-back"></span>
 			</view>
 			<view class="title">问答详情</view>
 			<view class="action-btn" @click="reaskQuestion">
-				<text class="iconfont icon-ask"></text>
+				<span class="iconfont icon-ask"></span>
 			</view>
 		</view>
 		
@@ -27,21 +27,21 @@
 					<view class="answer-tools">
 						<view class="tool-btn copy-btn" @click="copyAnswer">
 							<view class="tool-icon">
-								<text class="iconfont icon-copy"></text>
+								<span class="iconfont icon-copy"></span>
 							</view>
-							<text class="tool-text">复制</text>
+							<span class="tool-text">复制</span>
 						</view>
 						<view class="tool-btn voice-btn" @click="playVoice">
 							<view class="tool-icon">
-								<text class="iconfont icon-voice"></text>
+								<span class="iconfont icon-voice"></span>
 							</view>
-							<text class="tool-text">朗读</text>
+							<span class="tool-text">朗读</span>
 						</view>
 						<view class="tool-btn share-btn" @click="shareAnswer">
 							<view class="tool-icon">
-								<text class="iconfont icon-share"></text>
+								<span class="iconfont icon-share"></span>
 							</view>
-							<text class="tool-text">分享</text>
+							<span class="tool-text">分享</span>
 						</view>
 					</view>
 				</view>
@@ -181,6 +181,7 @@
 				
 				// 调用语音合成服务
 				try {
+					// 优先使用App全局语音服务
 					if (getApp().globalData.textToSpeech) {
 						getApp().globalData.textToSpeech.speak({
 							text: this.detail.answer,
@@ -188,11 +189,36 @@
 							rate: 1.0,
 							pitch: 1.0
 						});
+						console.log("使用原生语音合成服务");
 					} else {
-						console.log("语音合成服务未初始化");
+						// 回退到Vue原型上定义的服务
+						if (this.$textToSpeech && this.$textToSpeech.speak) {
+							this.$textToSpeech.speak(this.detail.answer)
+								.then(() => {
+									console.log("语音播放完成");
+								})
+								.catch(error => {
+									console.error("语音播放失败:", error);
+									uni.showToast({
+										title: '语音播放失败',
+										icon: 'none'
+									});
+								});
+							console.log("使用JS语音合成服务");
+						} else {
+							console.log("语音合成服务未初始化");
+							uni.showToast({
+								title: '语音合成服务未启用',
+								icon: 'none'
+							});
+						}
 					}
 				} catch (e) {
-					console.error("语音播放失败:", e);
+					console.error("语音播放错误:", e);
+					uni.showToast({
+						title: '语音播放失败',
+						icon: 'none'
+					});
 				}
 			},
 			
@@ -364,23 +390,23 @@
 	.iconfont {
 		font-size: 42rpx;
 	}
-	
+	#1
 	.icon-back:before {
 		content: "\e679";
 	}
-	
+	#1
 	.icon-ask:before {
 		content: "\e67d";
 	}
-	
+	#1
 	.icon-copy:before {
 		content: "\e67f";
 	}
-	
+	#1
 	.icon-voice:before {
 		content: "\e67e";
 	}
-	
+	#1
 	.icon-share:before {
 		content: "\e680";
 	}

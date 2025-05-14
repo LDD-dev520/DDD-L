@@ -1,6 +1,6 @@
 @font-face {
   font-family: "iconfont"; /* Project id 4252062 */
-  src: url('iconfont.ttf') format('truetype');
+  src: url('Bank/static/icon/iconfont.ttf') format('truetype');
 }
 
 .iconfont {
@@ -32,7 +32,7 @@
 }
 
 .icon-keyboard:before {
-  content: "\e67c";
+  content: "\e6a4";
 }
 
 .icon-ask:before {

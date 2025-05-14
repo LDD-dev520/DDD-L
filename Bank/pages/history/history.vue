@@ -6,7 +6,7 @@
 			</view>
 			<view class="title">历史记录</view>
 			<view class="clear-btn" @click="showClearConfirm">
-				<text class="iconfont icon-delete"></text>
+				<span class="iconfont icon-delete"></span>
 			</view>
 		</view>
 		
@@ -16,7 +16,7 @@
 					<view class="history-meta">
 						<view class="history-time">{{item.time || '未知时间'}}</view>
 						<view class="history-indicator">
-							<text class="iconfont icon-right"></text>
+							<span class="iconfont icon-right"></span>
 						</view>
 					</view>
 					<view class="history-question">{{item.question}}</view>
@@ -24,7 +24,7 @@
 				</view>
 				
 				<view class="empty-state" v-if="historyList.length === 0">
-					<image src="../../static/images/empty-data.png" mode="aspectFit" class="empty-image"></image>
+					<span class="iconfont icon-clear"></span>
 					<view class="empty-text">暂无历史记录</view>
 					<view class="btn btn-primary" style="width: 70%; margin-top: 40rpx;" @click="goToHome">去提问</view>
 				</view>
@@ -267,15 +267,15 @@
 	.iconfont {
 		font-size: 42rpx;
 	}
-	
+	#1
 	.icon-back:before {
 		content: "\e679";
 	}
-	
+	#1
 	.icon-delete:before {
 		content: "\e684";
 	}
-	
+	#1
 	.icon-right:before {
 		content: "\e670";
 	}

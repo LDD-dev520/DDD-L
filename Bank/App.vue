@@ -39,10 +39,10 @@
 </script>
 
 <style>
-	/* 导入图标字体 - 全局引用 */
+	/* 直接定义字体图标，不通过CSS文件导入 */
 	@font-face {
 		font-family: "iconfont";
-		src: url('/static/fonts/iconfont.ttf') format('truetype');
+		src: url('static/icon/iconfont.ttf') format('truetype');
 		font-weight: normal;
 		font-style: normal;
 		font-display: swap;
@@ -52,6 +52,71 @@
 	.iconfont {
 		font-family: "iconfont" !important;
 		font-size: 42rpx !important;
+		font-style: normal;
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+	}
+	
+	/* 定义所有图标代码 - 使用icon目录下的图标代码 */
+	.icon-right:before {
+		content: "\e642";
+	}
+	
+	.icon-copy:before {
+		content: "\e744";
+	}
+	
+	.icon-ask:before {
+		content: "\e7ca";
+	}
+	
+	.icon-star:before {
+		content: "\e7df";
+	}
+	
+	.icon-share:before {
+		content: "\e729";
+	}
+	
+	.icon-clear:before {
+		content: "\e900";
+	}
+	
+	.icon-voice:before {
+		content: "\e6a5";
+	}
+	
+	.icon-send:before {
+		content: "\e916";
+	}
+	
+	.icon-user:before {
+		content: "\e682";
+	}
+	
+	.icon-delete:before {
+		content: "\e681";
+	}
+	
+	.icon-history:before {
+		content: "\e69f";
+	}
+	
+	.icon-keyboard:before {
+		content: "\e6a4";
+	}
+	
+	.icon-mic:before {
+		content: "\e6b1";
+	}
+	
+	.icon-back:before {
+		content: "\e666";
+	}
+	
+	/* 特别保留ai图标，确保其兼容性 */
+	.icon-ai:before {
+		content: "\e682";
 	}
 	
 	/* 全局样式 */

@@ -9,7 +9,7 @@
 		<scroll-view scroll-y class="chat-container" :scroll-top="scrollTop">
 			<!-- 欢迎信息 -->
 			<view class="welcome-card" v-if="chatList.length === 0">
-				<image src="../../static/images/ai-assistant.png" mode="aspectFit" class="welcome-icon"></image>
+				<span class="iconfont icon-ai"></span>
 				<view class="welcome-title">您好，我是您的智能银行助手</view>
 				<view class="welcome-desc">我可以回答您关于银行业务的各类问题，请告诉我您需要了解什么？</view>
 				<view class="quick-questions">
@@ -30,16 +30,16 @@
 				<!-- AI回答 -->
 				<view class="answer-box" v-if="item.answer">
 					<view class="ai-avatar">
-						<image src="../../static/images/ai-avatar.png" mode="aspectFill"></image>
+						<span class="iconfont icon-ai"></span>
 					</view>
 					<view class="answer-content">
 						<text>{{item.answer}}</text>
 						<view class="answer-tools">
 							<view class="tool-btn voice-btn" @click="playVoice(item.answer)">
-								<text class="iconfont icon-voice"></text>
+								<span class="iconfont icon-voice"></span>
 							</view>
 							<view class="tool-btn copy-btn" @click="copyAnswer(item)">
-								<text class="iconfont icon-copy"></text>
+								<span class="iconfont icon-copy"></span>
 							</view>
 						</view>
 					</view>
@@ -49,7 +49,7 @@
 			<!-- 加载提示 -->
 			<view class="loading-box" v-if="isLoading">
 				<view class="ai-avatar">
-					<image src="../../static/images/ai-avatar.png" mode="aspectFill"></image>
+					<span class="iconfont icon-ai"></span>
 				</view>
 				<view class="loading-dots">
 					<view class="dot"></view>
@@ -63,7 +63,7 @@
 		<view class="input-container">
 			<view class="input-box">
 				<view class="voice-btn icon-wrapper" @click="toggleVoiceInput">
-					<text class="iconfont" :class="isVoiceMode ? 'icon-keyboard' : 'icon-mic'"></text>
+					<span class="iconfont" :class="isVoiceMode ? 'icon-keyboard' : 'icon-mic'"></span>
 				</view>
 				
 				<input 
@@ -81,11 +81,11 @@
 				</view>
 				
 				<view class="send-btn" @click="sendQuestion" v-if="inputContent.trim().length > 0">
-					<text class="iconfont icon-send"></text>
+					<span class="iconfont icon-send"></span>
 				</view>
 				
 				<view class="history-btn icon-wrapper" @click="goToHistory" v-else>
-					<text class="iconfont icon-history"></text>
+					<span class="iconfont icon-history"></span>
 				</view>
 			</view>
 		</view>
@@ -161,14 +161,29 @@
 				
 				// 调用录音API
 				try {
+					// 优先使用全局的语音识别服务
 					if (getApp().globalData.speechRecognition) {
 						getApp().globalData.speechRecognition.startRecognize();
-						console.log("开始录音...");
+						console.log("使用原生语音识别服务开始录音...");
 					} else {
-						console.log("语音识别服务未初始化");
+						// 回退到Vue原型上定义的服务
+						if (this.$speechRecognition && this.$speechRecognition.startRecording) {
+							this.$speechRecognition.startRecording();
+							console.log("使用JS语音识别服务开始录音...");
+						} else {
+							console.log("语音识别服务未初始化");
+							uni.showToast({
+								title: '语音识别服务未启用',
+								icon: 'none'
+							});
+						}
 					}
 				} catch (e) {
 					console.error("启动录音失败:", e);
+					uni.showToast({
+						title: '启动录音失败，请检查麦克风权限',
+						icon: 'none'
+					});
 				}
 			},
 			
@@ -184,14 +199,53 @@
 					title: '正在识别...'
 				});
 				
-				// 模拟语音识别结果（实际开发中应该从语音识别回调中获取）
-				setTimeout(() => {
+				try {
+					// 优先使用全局的语音识别服务
+					if (getApp().globalData.speechRecognition) {
+						getApp().globalData.speechRecognition.stopRecognize();
+						
+						// 监听语音识别结果 - 这里是模拟结果，实际应该对接科大讯飞等语音识别服务
+						setTimeout(() => {
+							uni.hideLoading();
+							this.inputContent = "如何办理银行卡挂失？";
+							this.sendQuestion();
+						}, 1000);
+					} else {
+						// 回退到Vue原型上定义的服务
+						if (this.$speechRecognition && this.$speechRecognition.stopRecording) {
+							this.$speechRecognition.stopRecording();
+							
+							// 使用语音识别服务识别结果
+							this.$speechRecognition.recognizeSpeech('temp')
+								.then(result => {
+									uni.hideLoading();
+									this.inputContent = result;
+									this.sendQuestion();
+								})
+								.catch(error => {
+									uni.hideLoading();
+									console.error("语音识别失败:", error);
+									uni.showToast({
+										title: '识别失败，请重试',
+										icon: 'none'
+									});
+								});
+						} else {
+							uni.hideLoading();
+							uni.showToast({
+								title: '语音识别服务未初始化',
+								icon: 'none'
+							});
+						}
+					}
+				} catch (e) {
 					uni.hideLoading();
-					
-					// 这里模拟一个语音识别结果
-					this.inputContent = "如何办理银行卡挂失？";
-					this.sendQuestion();
-				}, 1000);
+					console.error("停止录音失败:", e);
+					uni.showToast({
+						title: '语音识别失败，请重试',
+						icon: 'none'
+					});
+				}
 			},
 			
 			// 发送问题
@@ -285,16 +339,14 @@
 			playVoice(text) {
 				if (!text) return;
 				
-				console.log("播放语音:", text);
-				
-				// 使用TTS服务播放语音
 				uni.showToast({
-					title: '正在播放语音...',
+					title: '语音播放中...',
 					icon: 'none',
 					duration: 2000
 				});
 				
 				try {
+					// 优先使用App全局语音服务
 					if (getApp().globalData.textToSpeech) {
 						getApp().globalData.textToSpeech.speak({
 							text: text,
@@ -302,11 +354,36 @@
 							rate: 1.0,
 							pitch: 1.0
 						});
+						console.log("使用原生语音合成服务");
 					} else {
-						console.log("语音合成服务未初始化");
+						// 回退到Vue原型上定义的服务
+						if (this.$textToSpeech && this.$textToSpeech.speak) {
+							this.$textToSpeech.speak(text)
+								.then(() => {
+									console.log("语音播放完成");
+								})
+								.catch(error => {
+									console.error("语音播放失败:", error);
+									uni.showToast({
+										title: '语音播放失败',
+										icon: 'none'
+									});
+								});
+							console.log("使用JS语音合成服务");
+						} else {
+							console.log("语音合成服务未初始化");
+							uni.showToast({
+								title: '语音合成服务未启用',
+								icon: 'none'
+							});
+						}
 					}
 				} catch (e) {
-					console.error("语音播放失败:", e);
+					console.error("语音播放错误:", e);
+					uni.showToast({
+						title: '语音播放失败',
+						icon: 'none'
+					});
 				}
 			},
 			
@@ -704,39 +781,39 @@
 	.iconfont {
 		font-size: 42rpx;
 	}
-	
+	#1
 	.icon-history:before {
-		content: "\e678";
+		content: "\e69f";
 	}
-	
+	#1
 	.icon-user:before {
 		content: "\e681";
 	}
-	
+	#1
 	.icon-ai:before {
 		content: "\e682";
 	}
-	
+	#1
 	.icon-mic:before {
-		content: "\e67a";
+		content: "\e6b1";
 	}
-	
+	#1
 	.icon-keyboard:before {
 		content: "\e67c";
 	}
-	
+	#1
 	.icon-send:before {
-		content: "\e677";
+		content: "\e691";
 	}
-	
+	#1
 	.icon-copy:before {
-		content: "\e67f";
+		content: "\e6a5";
 	}
-	
+	#1
 	.icon-voice:before {
 		content: "\e67e";
 	}
-	
+	#1
 	.icon-star:before {
 		content: "\e683";
 	}

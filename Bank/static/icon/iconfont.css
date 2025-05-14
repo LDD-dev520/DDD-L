@@ -1,0 +1,75 @@
+@font-face {
+  font-family: "iconfont"; /* Project id 4920904 */
+  src: url('iconfont.woff2?t=1747202435079') format('woff2'),
+       url('iconfont.woff?t=1747202435079') format('woff'),
+       url('Bank/static/icon/iconfont.ttf') format('truetype');
+}
+
+.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-right:before {
+  content: "\e642";
+}
+
+.icon-copy:before {
+  content: "\e744";
+}
+
+.icon-ask:before {
+  content: "\e7ca";
+}
+
+.icon-star:before {
+  content: "\e7df";
+}
+
+.icon-wuguan:before {
+  content: "\ec5f";
+}
+
+.icon-share:before {
+  content: "\e729";
+}
+
+.icon-clear:before {
+  content: "\e900";
+}
+
+.icon-voice:before {
+  content: "\e6a5";
+}
+
+.icon-send:before {
+  content: "\e916";
+}
+
+.icon-user:before {
+  content: "\e682";
+}
+
+.icon-delete:before {
+  content: "\e681";
+}
+
+.icon-history:before {
+  content: "\e69f";
+}
+
+.icon-keyboard-26:before {
+  content: "\e6a4";
+}
+
+.icon-mic:before {
+  content: "\e6b1";
+}
+
+.icon-back:before {
+  content: "\e666";
+}
+
