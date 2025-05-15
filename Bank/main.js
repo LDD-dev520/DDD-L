@@ -6,10 +6,34 @@ Vue.config.productionTip = false
 // 引入语音识别和语音合成的工具类
 import SpeechRecognition from './utils/speech-recognition.js'
 import TextToSpeech from './utils/text-to-speech.js'
+// 引入知识库服务和ModelBuilder
+import KnowledgeService from './utils/knowledge-service.js'
+import ModelBuilder from './utils/model-builder.js'
 
 // 全局挂载语音工具
 Vue.prototype.$speechRecognition = new SpeechRecognition()
 Vue.prototype.$textToSpeech = new TextToSpeech()
+
+// 设置API密钥（实际应用中应从安全存储或环境变量获取）
+// 为了安全建议在实际项目中从服务器端或安全的配置获取
+const API_CONFIG = {
+  // 百度千帆API配置
+  apiKey: 'UenGRY86Xhrmgrmi0uIGyY5Q',
+  secretKey: 'Lb8BkiDEz2BUQArgmpJpCtwM2Yq40O7a',
+  model: 'ERNIE-4.5-turbo-vl-32k',
+  endpoint: 'https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/ernie_4.5_turbo_vl_32k'
+}
+
+// 全局挂载知识库服务和ModelBuilder
+Vue.prototype.$knowledgeService = new KnowledgeService()
+Vue.prototype.$modelBuilder = new ModelBuilder({
+  apiKey: API_CONFIG.apiKey,
+  secretKey: API_CONFIG.secretKey,
+  model: API_CONFIG.model,
+  endpoint: API_CONFIG.endpoint
+})
+
+console.log('初始化全局ModelBuilder实例：' + API_CONFIG.model);
 
 App.mpType = 'app'
 

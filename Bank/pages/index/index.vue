@@ -120,7 +120,39 @@
 			this.chatList = []; // 先清空示例数据，让用户看到欢迎信息
 			
 			// 初始化知识库服务
-			this.knowledgeService = new KnowledgeService();
+			try {
+				this.knowledgeService = new KnowledgeService();
+				
+				// 检查初始化状态
+				if (this.knowledgeService.modelBuilder) {
+					console.log('KnowledgeService已成功初始化，使用模型：' + 
+						this.knowledgeService.aiServiceConfig.models.baidu);
+				} else {
+					console.error('KnowledgeService初始化成功，但ModelBuilder实例未正确创建');
+					// 尝试重新初始化ModelBuilder
+					const [apiKey, secretKey] = this.knowledgeService.aiServiceConfig.apiKey.split('|');
+					this.knowledgeService.modelBuilder = new this.$modelBuilder.constructor({
+						apiKey: apiKey, 
+						secretKey: secretKey,
+						model: this.knowledgeService.aiServiceConfig.models.baidu,
+						endpoint: this.knowledgeService.aiServiceConfig.endpoints.baidu
+					});
+				}
+			} catch (e) {
+				console.error('初始化KnowledgeService失败:', e);
+				uni.showToast({
+					title: '系统初始化失败，部分功能可能无法使用',
+					icon: 'none',
+					duration: 3000
+				});
+			}
+			
+			// 确保conversationContext.history存在
+			if (this.knowledgeService && 
+				this.knowledgeService.conversationContext && 
+				!this.knowledgeService.conversationContext.history) {
+				this.knowledgeService.conversationContext.history = [];
+			}
 			
 			// 检查是否有预填充的问题（从历史记录页返回）
 			if (options && options.question) {
@@ -292,10 +324,29 @@
 					
 					// 显示错误信息
 					const lastIndex = this.chatList.length - 1;
-					this.chatList[lastIndex].answer = "很抱歉，系统暂时无法回答您的问题，请稍后再试。";
+					let errorMessage = "很抱歉，系统暂时无法回答您的问题，请稍后再试。";
+					
+					// 根据错误类型提供更具体的错误信息
+					if (err.message && err.message.includes('Failed to fetch')) {
+						errorMessage = "网络连接失败，请检查您的网络连接后重试。";
+					} else if (err.message && err.message.includes('Cannot read properties')) {
+						errorMessage = "系统处理异常，正在尝试修复，请稍后再试。";
+					}
+					
+					this.chatList[lastIndex].answer = errorMessage;
 					
 					// 隐藏加载状态
 					this.isLoading = false;
+					
+					// 仍然保存到历史记录
+					this.saveToHistory();
+					
+					// 显示提示
+					uni.showToast({
+						title: '回答生成失败',
+						icon: 'none',
+						duration: 2000
+					});
 				});
 			},
 			
