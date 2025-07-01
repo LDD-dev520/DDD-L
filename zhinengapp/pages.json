@@ -1,0 +1,32 @@
+{
+    "pages": [
+        {
+            "path": "pages/index/index",
+            "style": {
+                "navigationBarTitleText": "智能问答助手",
+                "navigationBarBackgroundColor": "#4080FF",
+                "navigationBarTextStyle": "white",
+                "app-plus": {
+                    "titleNView": false
+                }
+            }
+        },
+        {
+            "path": "pages/history/history",
+            "style": {
+                "navigationBarTitleText": "历史记录",
+                "navigationBarBackgroundColor": "#4080FF",
+                "navigationBarTextStyle": "white",
+                "app-plus": {
+                    "titleNView": false
+                }
+            }
+        }
+    ],
+    "globalStyle": {
+        "navigationBarTextStyle": "white",
+        "navigationBarTitleText": "智能问答助手",
+        "navigationBarBackgroundColor": "#4080FF",
+        "backgroundColor": "#F8F8F8"
+    }
+} 
