@@ -98,33 +98,46 @@ export function initRecorder() {
       // 创建录音管理器
       recorderManager = uni.getRecorderManager();
       
-      // 设置录音结束事件监听
-      recorderManager.onStop((res) => {
-        console.log('[Speech] 录音结束:', res);
-        isRecording = false;
+      // 标记是否已初始化事件处理器
+      recorderManager._eventInitialized = false;
+      
+      // 只在首次初始化时设置事件处理器
+      if (!recorderManager._eventInitialized) {
+        // 设置录音结束事件监听
+        const defaultStopHandler = (res) => {
+          console.log('[Speech] 录音结束:', res);
+          isRecording = false;
+          
+          // 保存录音文件路径
+          if (res.tempFilePath) {
+            recordFilePath = res.tempFilePath;
+            console.log('[Speech] 录音文件路径:', recordFilePath);
+          }
+        };
         
-        // 保存录音文件路径
-        if (res.tempFilePath) {
-          recordFilePath = res.tempFilePath;
-          console.log('[Speech] 录音文件路径:', recordFilePath);
-        }
-      });
-      
-      // 设置录音错误事件监听
-      recorderManager.onError((res) => {
-        console.error('[Speech] 录音错误:', res);
-        isRecording = false;
-        uni.showToast({
-          title: '录音失败: ' + (res.errMsg || '未知错误'),
-          icon: 'none'
+        // 保存默认处理器供以后恢复
+        recorderManager._onStopHandler = defaultStopHandler;
+        recorderManager.onStop(defaultStopHandler);
+        
+        // 设置录音错误事件监听
+        recorderManager.onError((res) => {
+          console.error('[Speech] 录音错误:', res);
+          isRecording = false;
+          uni.showToast({
+            title: '录音失败: ' + (res.errMsg || '未知错误'),
+            icon: 'none'
+          });
         });
-      });
-      
-      // 设置录音开始事件监听
-      recorderManager.onStart(() => {
-        console.log('[Speech] 录音开始');
-        isRecording = true;
-      });
+        
+        // 设置录音开始事件监听
+        recorderManager.onStart(() => {
+          console.log('[Speech] 录音开始');
+          isRecording = true;
+        });
+        
+        // 标记事件已初始化
+        recorderManager._eventInitialized = true;
+      }
       
       console.log('[Speech] 录音管理器初始化成功');
     } catch (error) {
@@ -211,10 +224,20 @@ export function stopRecording() {
         return;
       }
       
-      // 创建一个一次性事件监听器
-      const onStopCallback = (res) => {
-        // 移除事件监听器
-        recorderManager.offStop(onStopCallback);
+      // 保存原始onStop处理器
+      const originalOnStopHandler = recorderManager._onStopHandler;
+      
+      // 创建一个新的onStop处理器
+      const handleStop = (res) => {
+        // 恢复原始处理器（如果存在）
+        if (originalOnStopHandler) {
+          recorderManager.onStop(originalOnStopHandler);
+        } else {
+          // 如果没有原始处理器，设置一个空函数
+          recorderManager.onStop(() => {
+            console.log('[Speech] 录音结束');
+          });
+        }
         
         if (res.tempFilePath) {
           resolve(res.tempFilePath);
@@ -223,8 +246,11 @@ export function stopRecording() {
         }
       };
       
-      // 添加临时事件监听器
-      recorderManager.onStop(onStopCallback);
+      // 保存当前处理器供以后恢复
+      recorderManager._onStopHandler = handleStop;
+      
+      // 设置临时事件处理器
+      recorderManager.onStop(handleStop);
       
       // 停止录音
       recorderManager.stop();

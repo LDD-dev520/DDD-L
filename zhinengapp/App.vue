@@ -27,17 +27,22 @@ export default {
         uni.$off();
         
         // 保存必要的数据
-        try {
-            // 确保聊天历史被保存
-            const chatHistory = uni.getStorageSync('chat_messages');
-            if (chatHistory && Array.isArray(chatHistory)) {
-                Storage.setStorage('chat_history', chatHistory);
-            }
-        } catch (error) {
-            console.error('应用卸载时保存数据失败:', error);
-        }
+        this.saveAppData();
     },
     methods: {
+        // 保存应用数据
+        saveAppData() {
+            try {
+                // 确保聊天历史被保存
+                const chatHistory = uni.getStorageSync('chat_messages');
+                if (chatHistory && Array.isArray(chatHistory)) {
+                    Storage.setStorage('chat_history', chatHistory);
+                }
+            } catch (error) {
+                console.error('应用卸载时保存数据失败:', error);
+            }
+        },
+        
         async initApp() {
             console.log('开始初始化应用...');
             

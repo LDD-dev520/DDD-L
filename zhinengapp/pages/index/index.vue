@@ -218,14 +218,8 @@ export default {
       }
       
       try {
-        // 记录触摸起始位置
-        if (e && e.touches && e.touches[0]) {
-          this.touchStartY = e.touches[0].clientY;
-        } else {
-          this.touchStartY = 0;
-          console.warn('无法获取触摸位置信息');
-        }
-        this.isCancelRecording = false;
+        // 记录触摸起始位置并初始化录音状态
+        this.initRecordingState(e);
         
         // 开始录音
         console.log('设置录音状态为true');
@@ -234,23 +228,44 @@ export default {
         // 尝试开始录音
         await speech.startRecording();
         
-        // 震动反馈
-        try {
-          uni.vibrateShort();
-        } catch (vibError) {
-          console.log('震动反馈失败，但不影响录音', vibError);
-        }
+        // 提供触觉反馈
+        this.provideTactileFeedback();
       } catch (error) {
-        console.error('开始录音失败:', error);
-        this.isRecording = false;
-        
-        // 显示错误提示
-        uni.showToast({
-          title: '录音启动失败，请检查权限',
-          icon: 'none',
-          duration: 2000
-        });
+        this.handleRecordingError(error);
       }
+    },
+    
+    // 初始化录音状态
+    initRecordingState(e) {
+      if (e && e.touches && e.touches[0]) {
+        this.touchStartY = e.touches[0].clientY;
+      } else {
+        this.touchStartY = 0;
+        console.warn('无法获取触摸位置信息');
+      }
+      this.isCancelRecording = false;
+    },
+    
+    // 提供触觉反馈
+    provideTactileFeedback() {
+      try {
+        uni.vibrateShort();
+      } catch (vibError) {
+        console.log('震动反馈失败，但不影响录音', vibError);
+      }
+    },
+    
+    // 处理录音错误
+    handleRecordingError(error) {
+      console.error('开始录音失败:', error);
+      this.isRecording = false;
+      
+      // 显示错误提示
+      uni.showToast({
+        title: '录音启动失败，请检查权限',
+        icon: 'none',
+        duration: 2000
+      });
     },
     
     // 手指移动
@@ -308,71 +323,14 @@ export default {
           return;
         }
         
-        // 震动反馈
-        try {
-          uni.vibrateShort();
-        } catch (vibError) {
-          console.log('震动反馈失败，但继续处理', vibError);
-        }
+        this.provideTactileFeedback();
         
-        console.log('停止录音并获取文件路径');
-        // 停止录音
-        const filePath = await speech.stopRecording();
-        this.isRecording = false;
+        // 停止录音并获取文件路径
+        const filePath = await this.stopAndGetRecordingFile();
+        if (!filePath) return;
         
-        if (!filePath) {
-          console.error('未获取到录音文件路径');
-          throw new Error('未获取到录音文件');
-        }
-        
-        console.log('获取到录音文件路径:', filePath);
-        
-        // 显示思考状态
-        this.isThinking = true;
-        
-        // 显示加载提示
-        try {
-          uni.showLoading({
-            title: '正在处理语音...',
-            mask: true
-          });
-          
-          // 调用语音识别API
-          const recognitionResult = await speech.recognizeVoice(filePath);
-          console.log('语音识别结果:', recognitionResult);
-          
-          // 隐藏加载提示
-          uni.hideLoading();
-          
-          if (recognitionResult && recognitionResult.text) {
-            // 将识别结果设置到输入框
-            if (this.$refs.chatInput) {
-              this.$refs.chatInput.setInput(recognitionResult.text);
-            } else {
-              this.userInput = recognitionResult.text;
-            }
-            
-            // 自动发送识别结果
-            setTimeout(() => {
-              this.handleSendMessage(recognitionResult.text);
-            }, 300);
-          } else {
-            uni.showToast({
-              title: '未能识别语音内容',
-              icon: 'none'
-            });
-          }
-        } catch (error) {
-          console.error('语音识别失败:', error);
-          uni.hideLoading();
-          
-          uni.showToast({
-            title: '语音识别失败，请重试',
-            icon: 'none'
-          });
-        } finally {
-          this.isThinking = false;
-        }
+        // 处理语音识别
+        await this.processVoiceRecognition(filePath);
       } catch (error) {
         console.error('停止录音失败:', error);
         this.isRecording = false;
@@ -382,6 +340,80 @@ export default {
           icon: 'none'
         });
       }
+    },
+    
+    // 停止录音并获取文件路径
+    async stopAndGetRecordingFile() {
+      console.log('停止录音并获取文件路径');
+      const filePath = await speech.stopRecording();
+      this.isRecording = false;
+      
+      if (!filePath) {
+        console.error('未获取到录音文件路径');
+        throw new Error('未获取到录音文件');
+      }
+      
+      console.log('获取到录音文件路径:', filePath);
+      return filePath;
+    },
+    
+    // 处理语音识别
+    async processVoiceRecognition(filePath) {
+      // 显示思考状态
+      this.isThinking = true;
+      
+      try {
+        uni.showLoading({
+          title: '正在处理语音...',
+          mask: true
+        });
+        
+        // 调用语音识别API
+        const recognitionResult = await speech.recognizeVoice(filePath);
+        console.log('语音识别结果:', recognitionResult);
+        
+        // 隐藏加载提示
+        uni.hideLoading();
+        
+        if (recognitionResult && recognitionResult.text) {
+          this.handleRecognitionSuccess(recognitionResult.text);
+        } else {
+          uni.showToast({
+            title: '未能识别语音内容',
+            icon: 'none'
+          });
+        }
+      } catch (error) {
+        this.handleRecognitionError(error);
+      } finally {
+        this.isThinking = false;
+      }
+    },
+    
+    // 处理语音识别成功
+    handleRecognitionSuccess(text) {
+      // 将识别结果设置到输入框
+      if (this.$refs.chatInput) {
+        this.$refs.chatInput.setInput(text);
+      } else {
+        this.userInput = text;
+      }
+      
+      // 自动发送识别结果
+      setTimeout(() => {
+        this.handleSendMessage(text);
+      }, 300);
+    },
+    
+    // 处理语音识别错误
+    handleRecognitionError(error) {
+      console.error('语音识别失败:', error);
+      uni.hideLoading();
+      
+      uni.showToast({
+        title: '语音识别失败，请重试',
+        icon: 'none'
+      });
     },
     
     // 发送文本消息
@@ -433,50 +465,43 @@ export default {
     
     // 添加用户消息
     addUserMessage(content) {
-      // 确保chatMessages是一个数组
-      if (!Array.isArray(this.chatMessages)) {
-        console.log('chatMessages不是数组，重新初始化为空数组');
-        this.chatMessages = [];
-      }
+      this.ensureChatMessagesIsArray();
       
-      const message = {
-        isUser: true,
-        content: content,
-        time: formatTime(new Date()),
-        knowledge: []
-      };
-      
-      this.chatMessages.push(message);
-      this.saveChatHistory();
-      this.scrollToBottom();
+      const message = this.createMessage(content, true);
+      this.addMessageToChat(message);
     },
     
     // 添加AI消息
     addAIMessage(content, knowledgeItems = []) {
-      // 确保chatMessages是一个数组
-      if (!Array.isArray(this.chatMessages)) {
-        console.log('chatMessages不是数组，重新初始化为空数组');
-        this.chatMessages = [];
-      }
+      this.ensureChatMessagesIsArray();
       
       // 确保content不为空
       if (!content || content.trim() === '') {
         content = '抱歉，我暂时无法回答这个问题。';
       }
       
-      const message = {
-        isUser: false,
-        content: content,
-        time: formatTime(new Date()),
-        knowledge: knowledgeItems || []
-      };
-      
-      this.chatMessages.push(message);
-      this.saveChatHistory();
-      this.scrollToBottom();
+      const message = this.createMessage(content, false, knowledgeItems);
+      this.addMessageToChat(message);
       
       // 调试输出
       console.log('AI回答内容:', content);
+    },
+    
+    // 创建消息对象
+    createMessage(content, isUser, knowledgeItems = []) {
+      return {
+        isUser: isUser,
+        content: content,
+        time: formatTime(new Date()),
+        knowledge: isUser ? [] : (knowledgeItems || [])
+      };
+    },
+    
+    // 添加消息到聊天列表
+    addMessageToChat(message) {
+      this.chatMessages.push(message);
+      this.saveChatHistory();
+      this.scrollToBottom();
     },
     
     // 滚动到底部
@@ -500,12 +525,7 @@ export default {
     // 保存聊天历史
     saveChatHistory() {
       try {
-        // 确保chatMessages是一个数组
-        if (!Array.isArray(this.chatMessages)) {
-          console.error('保存聊天历史失败: chatMessages不是数组');
-          this.chatMessages = [];
-          return;
-        }
+        this.ensureChatMessagesIsArray();
         
         // 只保留最近的20条消息
         const recentMessages = this.chatMessages.slice(-20);
@@ -515,21 +535,34 @@ export default {
         Storage.setStorage('chat_history', recentMessages);
         
         // 保存最后一条对话到历史记录
-        if (recentMessages.length >= 2) {
-          const lastUserMsg = recentMessages.slice().reverse().find(msg => msg.isUser);
-          const lastAiMsg = recentMessages.slice().reverse().find(msg => !msg.isUser);
-          
-          if (lastUserMsg && lastAiMsg) {
-            Storage.saveChatHistory({
-              question: lastUserMsg.content,
-              answer: lastAiMsg.content,
-              time: Date.now(),
-              knowledge: lastAiMsg.knowledge || []
-            });
-          }
-        }
+        this.saveLastConversationToHistory(recentMessages);
       } catch (error) {
         console.error('保存聊天历史失败:', error);
+      }
+    },
+    
+    // 确保chatMessages是数组
+    ensureChatMessagesIsArray() {
+      if (!Array.isArray(this.chatMessages)) {
+        console.error('chatMessages不是数组，重新初始化为空数组');
+        this.chatMessages = [];
+      }
+    },
+    
+    // 保存最后一条对话到历史
+    saveLastConversationToHistory(messages) {
+      if (messages.length < 2) return;
+      
+      const lastUserMsg = messages.slice().reverse().find(msg => msg.isUser);
+      const lastAiMsg = messages.slice().reverse().find(msg => !msg.isUser);
+      
+      if (lastUserMsg && lastAiMsg) {
+        Storage.saveChatHistory({
+          question: lastUserMsg.content,
+          answer: lastAiMsg.content,
+          time: Date.now(),
+          knowledge: lastAiMsg.knowledge || []
+        });
       }
     },
     
@@ -598,6 +631,12 @@ export default {
       // 添加用户消息
       this.addUserMessage(message);
       
+      // 获取AI回答
+      await this.fetchAIResponse(message);
+    },
+    
+    // 获取AI回答
+    async fetchAIResponse(message) {
       // 显示思考状态
       this.isThinking = true;
       
@@ -613,11 +652,16 @@ export default {
         this.addAIMessage(result.answer, result.knowledge_items);
       } catch (error) {
         console.error('获取回答失败:', error);
-        // 如果发生错误，添加一个默认回答
-        this.addAIMessage('抱歉，我遇到了一些问题，无法回答您的问题。');
+        this.handleAPIError();
       } finally {
         this.isThinking = false;
       }
+    },
+    
+    // 处理API错误
+    handleAPIError() {
+      // 如果发生错误，添加一个默认回答
+      this.addAIMessage('抱歉，我遇到了一些问题，无法回答您的问题。');
     },
     
     // 格式化消息历史以发送给API

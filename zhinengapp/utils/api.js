@@ -12,36 +12,22 @@ const API_BASE_URL = 'http://192.168.1.8:8000'; // 请替换为您电脑的实�
  * @returns {Promise} 返回Promise，包含连接状态
  */
 export function testConnection() {
-  return new Promise((resolve, reject) => {
-    uni.request({
-      url: `${API_BASE_URL}/api/status`,
-      method: 'GET',
-      timeout: 5000,
-      success: (res) => {
-        if (res.statusCode === 200 && res.data && res.data.success) {
-          resolve({
-            connected: true,
-            message: res.data.message || '连接成功',
-            datetime: res.data.datetime,
-            response: res.data
-          });
-        } else {
-          resolve({
-            connected: false,
-            message: res.data?.message || `请求异常，状态码: ${res.statusCode}`,
-            statusCode: res.statusCode
-          });
-        }
-      },
-      fail: (err) => {
-        resolve({
-          connected: false,
-          message: err.errMsg || '连接失败',
-          error: err
-        });
-      }
+  return makeApiRequest('/api/status', 'GET', null, 5000)
+    .then(data => {
+      return {
+        connected: true,
+        message: data.message || '连接成功',
+        datetime: data.datetime,
+        response: data
+      };
+    })
+    .catch(error => {
+      return {
+        connected: false,
+        message: error.error || '连接失败',
+        error: error.originalError
+      };
     });
-  });
 }
 
 /**
@@ -53,39 +39,62 @@ export function testConnection() {
 export function getAnswer(question, options = {}) {
   console.log('[API] 发送问题:', question);
   
+  const requestData = {
+    user_id: options.user_id || 'default_user',
+    query: question
+  };
+  
+  return makeApiRequest('/chat', 'POST', requestData)
+    .then(data => {
+      return {
+        success: true,
+        answer: data.answer,
+        used_knowledge: data.docs && data.docs.length > 0,
+        knowledge_items: data.docs || [],
+        processing_time: 0
+      };
+    });
+}
+
+/**
+ * 发送API请求的通用方法
+ * @param {string} endpoint API端点
+ * @param {string} method 请求方法
+ * @param {Object} data 请求数据
+ * @param {number} timeout 超时时间(毫秒)
+ * @returns {Promise} 返回Promise，包含响应数据
+ */
+function makeApiRequest(endpoint, method = 'GET', data = null, timeout = 30000) {
   return new Promise((resolve, reject) => {
+    const url = `${API_BASE_URL}${endpoint}`;
+    console.log(`[API] 发送${method}请求到: ${url}`);
+    
     uni.request({
-      url: `${API_BASE_URL}/chat`,
-      method: 'POST',
-      data: {
-        user_id: options.user_id || 'default_user',
-        query: question
-      },
+      url,
+      method,
+      data,
+      timeout,
       header: {
         'Content-Type': 'application/json'
       },
       success: (res) => {
         if (res.statusCode === 200 && res.data) {
-          resolve({
-            success: true,
-            answer: res.data.answer,
-            used_knowledge: res.data.docs && res.data.docs.length > 0,
-            knowledge_items: res.data.docs || [],
-            processing_time: 0
-          });
+          resolve(res.data);
         } else {
           reject({
             success: false,
             error: `请求异常，状态码: ${res.statusCode}`,
-            statusCode: res.statusCode
+            statusCode: res.statusCode,
+            data: res.data
           });
         }
       },
       fail: (err) => {
-        console.error('[API] 获取回答失败:', err);
+        console.error(`[API] ${method}请求失败:`, err);
         reject({
           success: false,
-          error: err.errMsg || '网络请求失败'
+          error: err.errMsg || '网络请求失败',
+          originalError: err
         });
       }
     });
@@ -101,41 +110,19 @@ export function getAnswer(question, options = {}) {
 export function searchKnowledge(query, limit = 5) {
   console.log('[API] 搜索知识库:', query);
   
-  return new Promise((resolve, reject) => {
-    uni.request({
-      url: `${API_BASE_URL}/api/knowledge/search`,
-      method: 'POST',
-      data: {
-        query: query,
-        limit: limit
-      },
-      header: {
-        'Content-Type': 'application/json'
-      },
-      success: (res) => {
-        if (res.statusCode === 200 && res.data) {
-          resolve({
-            success: true,
-            results: res.data.results || [],
-            count: res.data.count || 0
-          });
-        } else {
-          reject({
-            success: false,
-            error: `请求异常，状态码: ${res.statusCode}`,
-            statusCode: res.statusCode
-          });
-        }
-      },
-      fail: (err) => {
-        console.error('[API] 搜索知识库失败:', err);
-        reject({
-          success: false,
-          error: err.errMsg || '网络请求失败'
-        });
-      }
+  const requestData = {
+    query: query,
+    limit: limit
+  };
+  
+  return makeApiRequest('/api/knowledge/search', 'POST', requestData)
+    .then(data => {
+      return {
+        success: true,
+        results: data.results || [],
+        count: data.count || 0
+      };
     });
-  });
 }
 
 /**

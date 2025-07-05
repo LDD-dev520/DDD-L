@@ -22,35 +22,74 @@
 </template>
 
 <script>
+/**
+ * 聊天消息组件
+ * 用于显示用户和AI的消息气泡
+ */
 export default {
   props: {
+    // 消息内容
     message: {
       type: String,
       required: true
     },
+    // 是否为用户消息
     isUser: {
       type: Boolean,
       default: false
     },
+    // 知识库引用项
     knowledge: {
       type: Array,
       default: () => []
     },
+    // 消息时间
     time: {
       type: String,
       default: ''
     }
   },
+  
+  computed: {
+    // 消息类型
+    messageType() {
+      return this.isUser ? 'user' : 'ai';
+    }
+  },
+  
   methods: {
+    // 复制消息文本到剪贴板
     copyText() {
+      this.copyToClipboard(this.message);
+    },
+    
+    // 通用复制到剪贴板方法
+    copyToClipboard(text) {
+      if (!text) {
+        console.warn('尝试复制空文本');
+        return;
+      }
+      
       uni.setClipboardData({
-        data: this.message,
+        data: text,
         success: () => {
+          this.showCopySuccess();
+        },
+        fail: (error) => {
+          console.error('复制到剪贴板失败:', error);
           uni.showToast({
-            title: '已复制到剪贴板',
-            icon: 'success'
+            title: '复制失败',
+            icon: 'none'
           });
         }
+      });
+    },
+    
+    // 显示复制成功提示
+    showCopySuccess() {
+      uni.showToast({
+        title: '已复制到剪贴板',
+        icon: 'success'
       });
     }
   }

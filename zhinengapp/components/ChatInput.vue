@@ -16,12 +16,18 @@
 </template>
 
 <script>
+/**
+ * 聊天输入组件
+ * 负责用户文本输入并发送消息
+ */
 export default {
   props: {
+    // 是否禁用输入
     disabled: {
       type: Boolean,
       default: false
     },
+    // 输入框占位符文本
     placeholder: {
       type: String,
       default: '有问题，尽管问'
@@ -33,28 +39,47 @@ export default {
       inputText: '',
     }
   },
+  
   created() {
     // 监听再次提问事件
-    uni.$on('reask', this.handleReask);
+    this.registerEventListeners();
   },
+  
   beforeDestroy() {
     // 移除事件监听
-    uni.$off('reask', this.handleReask);
+    this.unregisterEventListeners();
   },
+  
   methods: {
+    // 注册事件监听器
+    registerEventListeners() {
+      uni.$on('reask', this.handleReask);
+    },
+    
+    // 取消注册事件监听器
+    unregisterEventListeners() {
+      uni.$off('reask', this.handleReask);
+    },
+    
     // 发送消息
     sendMessage() {
-      if (!this.inputText.trim() || this.disabled) return;
+      // 验证输入是否有效
+      if (!this.canSend()) return;
       
       const message = this.inputText.trim();
       this.$emit('send', message);
-      this.inputText = '';
+      this.clearInput();
+    },
+    
+    // 检查是否可以发送消息
+    canSend() {
+      return !this.disabled && this.inputText.trim().length > 0;
     },
     
     // 处理再次提问
     handleReask(data) {
       if (data && data.question) {
-        this.inputText = data.question;
+        this.setInput(data.question);
       }
     },
     
@@ -65,7 +90,7 @@ export default {
     
     // 设置输入内容
     setInput(text) {
-      this.inputText = text;
+      this.inputText = text || '';
     }
   }
 }
